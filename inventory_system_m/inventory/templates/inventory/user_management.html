@@ -13,9 +13,13 @@
           <td style="font-weight:600;">{{ u.username }}{% if u == request.user %} <span style="font-size:11px; color:var(--muted);">(you)</span>{% endif %}</td>
           <td class="text-muted">{{ u.email|default:"—" }}</td>
           <td>
-            {% with r=u.profile.role %}
-            <span class="role-badge role-{{ r }}">{{ r }}</span>
-            {% endwith %}
+            {% if u.profile %}
+              {% with r=u.profile.role %}
+              <span class="role-badge role-{{ r }}">{{ r }}</span>
+              {% endwith %}
+            {% else %}
+              <span class="role-badge role-user">user</span>
+            {% endif %}
           </td>
           <td>{% if u.is_active %}<span class="badge badge-ok">Active</span>{% else %}<span class="badge badge-out">Inactive</span>{% endif %}</td>
         </tr>

@@ -14,11 +14,22 @@ class Command(BaseCommand):
         ]
 
         for username, password, role, email in users_data:
-            if not User.objects.filter(username=username).exists():
-                user = User.objects.create_user(username=username, password=password, email=email)
+            user, created = User.objects.get_or_create(username=username, defaults={'email': email})
+            if created:
+                user.set_password(password)
+                if role == 'admin':
+                    user.is_staff = True
+                    user.is_superuser = True
+                user.email = email
+                user.save()
                 UserProfile.objects.create(user=user, role=role)
                 self.stdout.write(f'Created user: {username} ({role})')
             else:
+                if role == 'admin' and not (user.is_staff and user.is_superuser):
+                    user.is_staff = True
+                    user.is_superuser = True
+                    user.save()
+                UserProfile.objects.get_or_create(user=user, defaults={'role': role})
                 self.stdout.write(f'User already exists: {username}')
 
         self.stdout.write(self.style.SUCCESS('Seed complete!'))
