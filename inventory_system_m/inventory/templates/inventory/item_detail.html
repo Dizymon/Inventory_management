@@ -1,0 +1,79 @@
+{% extends 'inventory/base.html' %}
+{% block title %}{{ item.item_name|default:item.description }} — InvenTrack{% endblock %}
+{% block content %}
+<div class="page-header flex" style="justify-content:space-between;">
+  <div>
+    <a href="{% url 'item_list' %}" style="color:var(--muted); text-decoration:none; font-size:13px;">← Back to Inventory</a>
+    <h1 style="margin-top:6px;">{{ item.item_name|default:item.description }}</h1>
+    <p>#{{ item.stock_number }} · {{ item.item_code }}</p>
+    {% if item.description %}
+      <p style="margin-top:6px; color:var(--muted);">{{ item.description }}</p>
+    {% endif %}
+  </div>
+  <div class="flex">
+    {% if role == 'admin' %}
+    <a href="{% url 'transaction_create' item.pk %}" class="btn btn-primary">↕ Log Transaction</a>
+    <a href="{% url 'item_edit' item.pk %}" class="btn btn-secondary">Edit</a>
+    {% endif %}
+    {% if role == 'admin' %}
+    <a href="{% url 'item_delete' item.pk %}" class="btn btn-danger">Delete</a>
+    {% endif %}
+  </div>
+</div>
+<div style="display:grid; grid-template-columns:1fr 2fr; gap:20px;">
+  <div>
+    <div class="card">
+      <div class="card-title">Item Details</div>
+      <table style="font-size:13px;">
+        <tr><td style="color:var(--muted); padding:6px 0; padding-right:20px; font-family:var(--mono); font-size:11px; text-transform:uppercase;">Stock #</td><td style="font-family:var(--mono); padding:6px 0;">{{ item.stock_number }}</td></tr>
+        <tr><td style="color:var(--muted); padding:6px 0; padding-right:20px; font-family:var(--mono); font-size:11px; text-transform:uppercase;">Item Code</td><td style="font-family:var(--mono); padding:6px 0;">{{ item.item_code }}</td></tr>
+        <tr><td style="color:var(--muted); padding:6px 0; padding-right:20px; font-family:var(--mono); font-size:11px; text-transform:uppercase;">Category</td><td style="padding:6px 0;">{{ item.category.name|default:'Uncategorized' }}</td></tr>
+        <tr><td style="color:var(--muted); padding:6px 0; padding-right:20px; font-family:var(--mono); font-size:11px; text-transform:uppercase;">Unit</td><td style="padding:6px 0;">{{ item.unit_of_measure }}</td></tr>
+        <tr><td style="color:var(--muted); padding:6px 0; padding-right:20px; font-family:var(--mono); font-size:11px; text-transform:uppercase;">Quantity</td><td style="padding:6px 0; font-weight:700; font-family:var(--mono); font-size:20px;
+          {% if item.stock_status == 'out_of_stock' %}color:var(--danger){% elif item.stock_status == 'low_stock' %}color:var(--warning){% else %}color:var(--success){% endif %}">{{ item.quantity }}</td></tr>
+        <tr><td style="color:var(--muted); padding:6px 0; padding-right:20px; font-family:var(--mono); font-size:11px; text-transform:uppercase;">Min Qty</td><td style="padding:6px 0; font-family:var(--mono);">{{ item.minimum_quantity }}</td></tr>
+        <tr><td style="color:var(--muted); padding:6px 0; padding-right:20px; font-family:var(--mono); font-size:11px; text-transform:uppercase;">Status</td><td style="padding:6px 0;">
+          {% if item.stock_status == 'out_of_stock' %}<span class="badge badge-out">Out of Stock</span>
+          {% elif item.stock_status == 'low_stock' %}<span class="badge badge-low">Low Stock</span>
+          {% else %}<span class="badge badge-ok">In Stock</span>{% endif %}
+        </td></tr>
+        <tr><td style="color:var(--muted); padding:6px 0; padding-right:20px; font-family:var(--mono); font-size:11px; text-transform:uppercase;">Unit Price</td><td style="padding:6px 0; font-family:var(--mono);">₱{{ item.unit_price }}</td></tr>
+        <tr><td style="color:var(--muted); padding:6px 0; padding-right:20px; font-family:var(--mono); font-size:11px; text-transform:uppercase;">Total Value</td><td style="padding:6px 0; font-family:var(--mono); font-weight:700;">₱{{ item.total_value }}</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Transaction History</div>
+    {% if transactions %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Date/Time</th><th>Type</th><th>Qty</th><th>Before</th><th>After</th><th>Notes</th><th>By</th></tr>
+        </thead>
+        <tbody>
+          {% for tx in transactions %}
+          <tr>
+            <td class="text-mono text-muted">{{ tx.timestamp|date:"M d, Y H:i" }}</td>
+            <td>
+              <span class="badge {% if tx.transaction_type == 'in' %}badge-in{% elif tx.transaction_type == 'out' %}badge-out-tx{% else %}badge-adj{% endif %}">
+                {{ tx.get_transaction_type_display }}
+              </span>
+            </td>
+            <td style="font-family:var(--mono); font-weight:700; {% if tx.transaction_type == 'in' %}color:var(--success){% elif tx.transaction_type == 'out' %}color:var(--danger){% endif %}">
+              {% if tx.transaction_type == 'in' %}+{% elif tx.transaction_type == 'out' %}-{% endif %}{{ tx.quantity }}
+            </td>
+            <td class="text-mono">{{ tx.previous_quantity }}</td>
+            <td class="text-mono">{{ tx.new_quantity }}</td>
+            <td class="text-muted" style="font-size:12px;">{{ tx.notes|default:"-" }}</td>
+            <td class="text-muted">{{ tx.performed_by.username }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">↕</div>No transactions yet</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

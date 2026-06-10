@@ -1,0 +1,51 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Category Management — InvenTrack{% endblock %}
+{% block content %}
+<div class="page-header flex" style="justify-content:space-between; align-items:flex-end; gap:12px;">
+  <div>
+    <h1>Categories</h1>
+    <p>Manage inventory categories and add new ones.</p>
+  </div>
+</div>
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
+  <div class="card">
+    <div class="card-title">Existing Categories</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in categories %}
+          <tr>
+            <td>{{ category.name }}</td>
+            <td>
+              <a href="{% url 'category_edit' category.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="2"><div class="empty"><div class="empty-icon">◫</div>No categories yet</div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card" style="max-width:420px;">
+    <div class="card-title">Add New Category</div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Category Name</label>
+        {{ form.name }}
+      </div>
+      {% if form.errors %}
+      <div class="alert alert-error">Please correct the error and try again.</div>
+      {% endif %}
+      <button type="submit" class="btn btn-primary">Add Category</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

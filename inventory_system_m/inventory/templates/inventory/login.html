@@ -1,0 +1,26 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Login — InvenTrack{% endblock %}
+{% block content %}
+<div style="width:400px;">
+  <div style="text-align:center; margin-bottom:32px;">
+    <div style="font-family:var(--mono); font-size:22px; font-weight:700; color:var(--accent);">Inven<span style="color:var(--text)">Track</span></div>
+    <p style="color:var(--muted); font-size:13px; margin-top:6px;">Inventory Management System</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Sign In</div>
+    {% if messages %}{% for msg in messages %}<div class="alert alert-error">{{ msg }}</div>{% endfor %}{% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" class="form-control" autofocus required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:11px;">Sign In →</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

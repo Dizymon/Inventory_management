@@ -1,0 +1,126 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Reports — InvenTrack{% endblock %}
+{% block content %}
+<div class="page-header flex" style="justify-content:space-between;">
+  <div><h1>Reports</h1><p>Inventory overview and analytics</p></div>
+  <a href="{% url 'export_csv' %}" class="btn btn-secondary">⬇ Export CSV</a>
+</div>
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <div class="stat-label">Total Items</div>
+    <div class="stat-value">{{ total_items }}</div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-label">Out of Stock</div>
+    <div class="stat-value">{{ out_count }}</div>
+  </div>
+  <div class="stat-card yellow">
+    <div class="stat-label">Low Stock</div>
+    <div class="stat-value">{{ low_count }}</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">Total Value</div>
+    <div class="stat-value" style="font-size:22px;">₱{{ total_value|floatformat:2 }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">⚠ Low Stock Items</div>
+  {% if low_stock_items %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Stock #</th><th>Description</th><th>Unit</th><th>Current Qty</th><th>Min Qty</th></tr></thead>
+      <tbody>
+        {% for item in low_stock_items %}
+        <tr>
+          <td class="text-mono">{{ item.stock_number }}</td>
+          <td><a href="{% url 'item_detail' item.pk %}" style="color:var(--text); text-decoration:none;">{{ item.description }}</a></td>
+          <td class="text-muted">{{ item.unit_of_measure }}</td>
+          <td style="color:var(--warning); font-family:var(--mono); font-weight:700;">{{ item.quantity }}</td>
+          <td class="text-mono text-muted">{{ item.minimum_quantity }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><div class="empty-icon">✓</div>No low stock items</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-title">✕ Out of Stock Items</div>
+  {% if out_of_stock_items %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Stock #</th><th>Description</th><th>Item Code</th><th>Unit</th></tr></thead>
+      <tbody>
+        {% for item in out_of_stock_items %}
+        <tr>
+          <td class="text-mono">{{ item.stock_number }}</td>
+          <td><a href="{% url 'item_detail' item.pk %}" style="color:var(--text); text-decoration:none;">{{ item.description }}</a></td>
+          <td class="text-mono text-muted">{{ item.item_code }}</td>
+          <td class="text-muted">{{ item.unit_of_measure }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><div class="empty-icon">✓</div>No out-of-stock items</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-title">↕ Recent Transaction History</div>
+  {% if recent_txs %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Date/Time</th><th>Item</th><th>Type</th><th>Qty</th><th>Before</th><th>After</th><th>By</th><th>Notes</th></tr></thead>
+      <tbody>
+        {% for tx in recent_txs %}
+        <tr>
+          <td class="text-mono text-muted" style="white-space:nowrap;">{{ tx.timestamp|date:"M d, Y H:i" }}</td>
+          <td style="max-width:200px;"><a href="{% url 'item_detail' tx.item.pk %}" style="color:var(--text); text-decoration:none;">{{ tx.item.description|truncatechars:35 }}</a></td>
+          <td><span class="badge {% if tx.transaction_type == 'in' %}badge-in{% elif tx.transaction_type == 'out' %}badge-out-tx{% else %}badge-adj{% endif %}">{{ tx.get_transaction_type_display }}</span></td>
+          <td style="font-family:var(--mono); font-weight:700; {% if tx.transaction_type == 'in' %}color:var(--success){% elif tx.transaction_type == 'out' %}color:var(--danger){% endif %}">
+            {% if tx.transaction_type == 'in' %}+{% elif tx.transaction_type == 'out' %}-{% endif %}{{ tx.quantity }}
+          </td>
+          <td class="text-mono">{{ tx.previous_quantity }}</td>
+          <td class="text-mono">{{ tx.new_quantity }}</td>
+          <td class="text-muted">{{ tx.performed_by.username }}</td>
+          <td class="text-muted" style="font-size:12px;">{{ tx.notes|default:"-"|truncatechars:30 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><div class="empty-icon">↕</div>No transactions logged yet</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-title">◫ Full Stock Summary</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Stock #</th><th>Item Code</th><th>Description</th><th>Unit</th><th>Qty</th><th>Min Qty</th><th>Status</th><th>Unit Price</th><th>Total Value</th></tr></thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td class="text-mono">{{ item.stock_number }}</td>
+          <td class="text-mono text-muted">{{ item.item_code }}</td>
+          <td><a href="{% url 'item_detail' item.pk %}" style="color:var(--text); text-decoration:none;">{{ item.description }}</a></td>
+          <td class="text-muted">{{ item.unit_of_measure }}</td>
+          <td style="font-family:var(--mono); font-weight:600; {% if item.stock_status == 'out_of_stock' %}color:var(--danger){% elif item.stock_status == 'low_stock' %}color:var(--warning){% else %}color:var(--success){% endif %}">{{ item.quantity }}</td>
+          <td class="text-mono text-muted">{{ item.minimum_quantity }}</td>
+          <td>{% if item.stock_status == 'out_of_stock' %}<span class="badge badge-out">Out</span>{% elif item.stock_status == 'low_stock' %}<span class="badge badge-low">Low</span>{% else %}<span class="badge badge-ok">OK</span>{% endif %}</td>
+          <td class="text-mono">₱{{ item.unit_price }}</td>
+          <td class="text-mono">₱{{ item.total_value }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'inventory/base.html' %}
+{% block title %}User Management — InvenTrack{% endblock %}
+{% block content %}
+<div class="page-header"><h1>User Management</h1><p>Manage the 3 system users and their roles</p></div>
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
+  <div class="card">
+    <div class="card-title">System Users</div>
+    <table>
+      <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Active</th></tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td style="font-weight:600;">{{ u.username }}{% if u == request.user %} <span style="font-size:11px; color:var(--muted);">(you)</span>{% endif %}</td>
+          <td class="text-muted">{{ u.email|default:"—" }}</td>
+          <td>
+            {% with r=u.profile.role %}
+            <span class="role-badge role-{{ r }}">{{ r }}</span>
+            {% endwith %}
+          </td>
+          <td>{% if u.is_active %}<span class="badge badge-ok">Active</span>{% else %}<span class="badge badge-out">Inactive</span>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-muted" style="text-align:center; padding:24px;">No users yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">Add New User</div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group"><label>Username</label>{{ form.username }}</div>
+      <div class="form-group"><label>Email</label>{{ form.email }}</div>
+      <div class="form-group"><label>Password</label>{{ form.password }}</div>
+      <div class="form-group"><label>Role</label>{{ form.role }}</div>
+      <div style="background:var(--surface2); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; color:var(--muted);">
+        <strong style="color:var(--text);">Role Permissions:</strong><br><br>
+        <strong style="color:var(--accent);">Admin</strong> — Full access: add, edit, delete inventory items; manage users and categories; view reports<br><br>
+        <strong style="color:var(--success);">Supplier</strong> — Can add new inventory items with prices and view item details<br><br>
+        <strong style="color:var(--muted);">User</strong> — Read-only access to inventory and item details
+      </div>
+      {% if form.errors %}<div class="alert alert-error">{{ form.errors }}</div>{% endif %}
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Create User</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

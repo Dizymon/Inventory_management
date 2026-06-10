@@ -1,0 +1,19 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Delete Item — InvenTrack{% endblock %}
+{% block content %}
+<div style="max-width:480px; margin:0 auto;">
+  <div class="card" style="border-color:rgba(239,68,68,0.3);">
+    <div style="text-align:center; padding:16px 0;">
+      <div style="font-size:40px; margin-bottom:16px;">⚠</div>
+      <h2 style="margin-bottom:8px;">Delete Item?</h2>
+      <p style="color:var(--muted); margin-bottom:4px;">This action cannot be undone.</p>
+      <p style="font-weight:600; margin-bottom:24px;">{{ item.description }}</p>
+      <form method="post" style="display:flex; gap:12px; justify-content:center;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="{% url 'item_detail' item.pk %}" class="btn btn-secondary">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

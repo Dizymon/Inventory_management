@@ -1,0 +1,136 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Inventory — InvenTrack{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Inventory</h1>
+  <p>{{ items.count }} item{{ items.count|pluralize }} found</p>
+</div>
+<div class="action-bar">
+  <form method="get" class="search-bar" style="flex:1; margin:0; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search items..." style="max-width:220px; flex:1; min-width:180px;">
+    <select name="status" class="form-control" style="width:auto; padding:9px 12px; font-size:13px;">
+      <option value="">All Status</option>
+      <option value="ok" {% if status == 'ok' %}selected{% endif %}>In Stock</option>
+      <option value="low" {% if status == 'low' %}selected{% endif %}>Low Stock</option>
+      <option value="out" {% if status == 'out' %}selected{% endif %}>Out of Stock</option>
+    </select>
+    <select name="category" class="form-control" style="width:auto; padding:9px 12px; font-size:13px;">
+      <option value="">All Categories</option>
+      {% for category in categories %}
+      <option value="{{ category.id }}" {% if category_id|stringformat:'s' == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+    {% if query or status or category_id %}<a href="{% url 'item_list' %}" class="btn btn-secondary btn-sm">Clear</a>{% endif %}
+  </form>
+  {% if role == 'admin' or role == 'supplier' %}
+  <a href="{% url 'item_create' %}" class="btn btn-primary">+ Add Item</a>
+  {% endif %}
+</div>
+<div class="card" style="padding:0; overflow:hidden;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Stock #</th>
+          <th>Item Name</th>
+          <th>Category</th>
+          <th>Unit</th>
+          <th>Quantity</th>
+          <th>Details</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td class="text-mono">{{ item.stock_number }}</td>
+          <td style="max-width:260px; font-weight:500;">{{ item.item_name|default:item.description }}</td>
+          <td class="text-muted">{{ item.category.name|default:'Uncategorized' }}</td>
+          <td class="text-muted">{{ item.unit_of_measure }}</td>
+          <td>
+            <span style="font-family:var(--mono); font-weight:700;
+              {% if item.stock_status == 'out_of_stock' %}color:var(--danger){% elif item.stock_status == 'low_stock' %}color:var(--warning){% else %}color:var(--success){% endif %}">
+              {{ item.quantity }}
+            </span>
+          </td>
+          <td>
+            <button type="button" class="btn btn-outline btn-sm open-item-details" data-modal-id="item-modal-{{ item.pk }}">
+              View details
+            </button>
+          </td>
+          <td>
+            <div class="flex">
+              {% if role == 'admin' %}
+              <a href="{% url 'item_edit' item.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+              <a href="{% url 'transaction_create' item.pk %}" class="btn btn-success btn-sm">↕ Log</a>
+              <a href="{% url 'item_delete' item.pk %}" class="btn btn-danger btn-sm">Del</a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7"><div class="empty"><div class="empty-icon">◫</div>No items found</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% for item in items %}
+<div id="item-modal-{{ item.pk }}" class="modal" aria-hidden="true">
+  <div class="modal-overlay"></div>
+  <div class="modal-window">
+    <div class="modal-header">
+      <div>
+        <h3 style="margin:0;">{{ item.item_name|default:item.description }}</h3>
+        {% if item.description %}
+        <p class="text-muted" style="font-size:13px; margin:4px 0 0;">{{ item.description }}</p>
+        {% endif %}
+      </div>
+      <button type="button" class="modal-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-detail-row"><strong>Stock #</strong><span>{{ item.stock_number }}</span></div>
+      <div class="modal-detail-row"><strong>Item Name</strong><span>{{ item.item_name|default:item.description }}</span></div>
+      <div class="modal-detail-row"><strong>Description</strong><span>{{ item.description|default:'-' }}</span></div>
+      <div class="modal-detail-row"><strong>Item Code</strong><span>{{ item.item_code|default:'-' }}</span></div>
+      <div class="modal-detail-row"><strong>Category</strong><span>{{ item.category.name|default:'Uncategorized' }}</span></div>
+      <div class="modal-detail-row"><strong>Unit</strong><span>{{ item.unit_of_measure }}</span></div>
+      <div class="modal-detail-row"><strong>Quantity</strong><span>{{ item.quantity }}</span></div>
+      <div class="modal-detail-row"><strong>Status</strong><span>{% if item.stock_status == 'out_of_stock' %}Out of Stock{% elif item.stock_status == 'low_stock' %}Low Stock{% else %}In Stock{% endif %}</span></div>
+      <div class="modal-detail-row"><strong>Minimum Qty</strong><span>{{ item.minimum_quantity }}</span></div>
+      <div class="modal-detail-row"><strong>Unit Price</strong><span>{{ item.unit_price }}</span></div>
+      <div class="modal-detail-row"><strong>Created</strong><span>{{ item.created_at|date:'M d, Y H:i' }}</span></div>
+      <div class="modal-detail-row"><strong>Updated</strong><span>{{ item.updated_at|date:'M d, Y H:i' }}</span></div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.open-item-details').forEach(function(button) {
+      button.addEventListener('click', function() {
+        var modal = document.getElementById(this.dataset.modalId);
+        if (modal) modal.classList.add('open');
+      });
+    });
+
+    document.querySelectorAll('.modal-overlay, .modal-close').forEach(function(element) {
+      element.addEventListener('click', function(event) {
+        var modal = this.closest('.modal');
+        if (modal) modal.classList.remove('open');
+      });
+    });
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        document.querySelectorAll('.modal.open').forEach(function(modal) {
+          modal.classList.remove('open');
+        });
+      }
+    });
+  });
+</script>
+{% endblock %}
