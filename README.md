@@ -17,7 +17,7 @@ This project supports:
 |----------|-------------|
 | Admin    | Add/edit/delete inventory, manage users/categories, view reports |
 | Supplier | Add inventory items and view item details |
-| User     | Read-only access to inventory and item details |
+| Viewer   | Read-only access to inventory and item details |
 
 ## Setup
 
@@ -47,9 +47,10 @@ Visit http://127.0.0.1:8000 and log in.
 
 | Username      | Password      | Role     |
 |---------------|---------------|----------|
-| admin_user    | admin123      | Admin    |
-| supplier_user | supplier123   | Supplier |
-| regular_user  | user123       | User     |
+| admin         | admin123      | Admin    |
+| supplier      | supplier123   | Supplier |
+| viewer        | viewer123     | User     |
+| Database      | DB123         | Superuser|
 
 ## Features
 

@@ -47,9 +47,9 @@ Visit http://127.0.0.1:8000 and log in.
 
 | Username      | Password      | Role     |
 |---------------|---------------|----------|
-| admin_user    | admin123      | Admin    |
-| supplier_user | supplier123   | Supplier |
-| regular_user  | user123       | User     |
+| admin         | admin123      | Admin    |
+| supplier      | supplier123   | Supplier |
+| viewer        | user123       | User     |
 
 ## Features
 
