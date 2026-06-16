@@ -35,11 +35,17 @@ class TransactionForm(forms.ModelForm):
 
 
 class UserCreateForm(forms.Form):
-    ROLE_CHOICES = [('admin', 'Admin'), ('supplier', 'Supplier'), ('user', 'User')]
+    ROLE_CHOICES = [('viewer', 'Viewer'), ('editor', 'Editor'), ('admin', 'Admin')]
     username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'form-control'}))
     email = forms.EmailField(required=False, widget=forms.EmailInput(attrs={'class': 'form-control'}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
+
+    def clean_username(self):
+        username = self.cleaned_data['username'].strip()
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError('A user with this username already exists.')
+        return username
 
     def save(self, commit=True):
         user = User(

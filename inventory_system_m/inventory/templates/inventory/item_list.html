@@ -23,7 +23,7 @@
     <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
     {% if query or status or category_id %}<a href="{% url 'item_list' %}" class="btn btn-secondary btn-sm">Clear</a>{% endif %}
   </form>
-  {% if role == 'admin' or role == 'supplier' %}
+  {% if role == 'admin' or role == 'editor' %}
   <a href="{% url 'item_create' %}" class="btn btn-primary">+ Add Item</a>
   {% endif %}
 </div>
@@ -61,10 +61,12 @@
           </td>
           <td>
             <div class="flex">
-              {% if role == 'admin' %}
+              {% if role == 'admin' or role == 'editor' %}
               <a href="{% url 'item_edit' item.pk %}" class="btn btn-secondary btn-sm">Edit</a>
               <a href="{% url 'transaction_create' item.pk %}" class="btn btn-success btn-sm">↕ Log</a>
+              {% if role == 'admin' %}
               <a href="{% url 'item_delete' item.pk %}" class="btn btn-danger btn-sm">Del</a>
+              {% endif %}
               {% endif %}
             </div>
           </td>

@@ -1,7 +1,7 @@
 {% extends 'inventory/base.html' %}
-{% block title %}User Management — InvenTrack{% endblock %}
+{% block title %}User Management - InvenTrack{% endblock %}
 {% block content %}
-<div class="page-header"><h1>User Management</h1><p>Manage the 3 system users and their roles</p></div>
+<div class="page-header"><h1>User Management</h1><p>Manage viewer, editor, and admin accounts</p></div>
 <div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
   <div class="card">
     <div class="card-title">System Users</div>
@@ -11,14 +11,14 @@
         {% for u in users %}
         <tr>
           <td style="font-weight:600;">{{ u.username }}{% if u == request.user %} <span style="font-size:11px; color:var(--muted);">(you)</span>{% endif %}</td>
-          <td class="text-muted">{{ u.email|default:"—" }}</td>
+          <td class="text-muted">{{ u.email|default:"-" }}</td>
           <td>
             {% if u.profile %}
               {% with r=u.profile.role %}
               <span class="role-badge role-{{ r }}">{{ r }}</span>
               {% endwith %}
             {% else %}
-              <span class="role-badge role-user">user</span>
+              <span class="role-badge role-viewer">viewer</span>
             {% endif %}
           </td>
           <td>{% if u.is_active %}<span class="badge badge-ok">Active</span>{% else %}<span class="badge badge-out">Inactive</span>{% endif %}</td>
@@ -39,9 +39,9 @@
       <div class="form-group"><label>Role</label>{{ form.role }}</div>
       <div style="background:var(--surface2); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; color:var(--muted);">
         <strong style="color:var(--text);">Role Permissions:</strong><br><br>
-        <strong style="color:var(--accent);">Admin</strong> — Full access: add, edit, delete inventory items; manage users and categories; view reports<br><br>
-        <strong style="color:var(--success);">Supplier</strong> — Can add new inventory items with prices and view item details<br><br>
-        <strong style="color:var(--muted);">User</strong> — Read-only access to inventory and item details
+        <strong style="color:var(--accent);">Admin</strong> - Full access: manage users, categories, inventory, stock, and reports<br><br>
+        <strong style="color:var(--success);">Editor</strong> - Can add and update inventory items and log stock transactions<br><br>
+        <strong style="color:var(--muted);">Viewer</strong> - Read-only access to inventory, item details, and reports
       </div>
       {% if form.errors %}<div class="alert alert-error">{{ form.errors }}</div>{% endif %}
       <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Create User</button>

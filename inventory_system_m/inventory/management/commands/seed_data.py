@@ -4,13 +4,13 @@ from inventory.models import UserProfile
 
 
 class Command(BaseCommand):
-    help = 'Seed default admin, supplier, and user accounts'
+    help = 'Seed default admin, editor, and viewer accounts'
 
     def handle(self, *args, **kwargs):
         users_data = [
             ('admin_user', 'admin123', 'admin', 'admin@inventory.local'),
-            ('supplier_user', 'supplier123', 'supplier', 'supplier@inventory.local'),
-            ('regular_user', 'user123', 'user', 'user@inventory.local'),
+            ('editor_user', 'editor123', 'editor', 'editor@inventory.local'),
+            ('viewer_user', 'viewer123', 'viewer', 'viewer@inventory.local'),
         ]
 
         for username, password, role, email in users_data:
@@ -22,14 +22,14 @@ class Command(BaseCommand):
                     user.is_superuser = True
                 user.email = email
                 user.save()
-                UserProfile.objects.create(user=user, role=role)
+                UserProfile.objects.update_or_create(user=user, defaults={'role': role})
                 self.stdout.write(f'Created user: {username} ({role})')
             else:
                 if role == 'admin' and not (user.is_staff and user.is_superuser):
                     user.is_staff = True
                     user.is_superuser = True
                     user.save()
-                UserProfile.objects.get_or_create(user=user, defaults={'role': role})
+                UserProfile.objects.update_or_create(user=user, defaults={'role': role})
                 self.stdout.write(f'User already exists: {username}')
 
         self.stdout.write(self.style.SUCCESS('Seed complete!'))

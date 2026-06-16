@@ -33,9 +33,18 @@ def logout_view(request):
 
 def get_role(user):
     try:
-        return user.profile.role
+        role = user.profile.role
     except:
-        return 'user'
+        return 'viewer'
+    legacy_roles = {
+        'supplier': 'editor',
+        'user': 'viewer',
+    }
+    return legacy_roles.get(role, role)
+
+
+def can_edit_inventory(user):
+    return get_role(user) in ['admin', 'editor']
 
 
 @login_required
@@ -108,7 +117,7 @@ def item_detail(request, pk):
 @login_required
 def item_create(request):
     role = get_role(request.user)
-    if role not in ['admin', 'supplier']:
+    if role not in ['admin', 'editor']:
         messages.error(request, 'You do not have permission to add items.')
         return redirect('item_list')
     if request.method == 'POST':
@@ -125,8 +134,8 @@ def item_create(request):
 @login_required
 def item_edit(request, pk):
     role = get_role(request.user)
-    if role != 'admin':
-        messages.error(request, 'Only admins can edit items.')
+    if role not in ['admin', 'editor']:
+        messages.error(request, 'Only admins and editors can edit items.')
         return redirect('item_list')
     item = get_object_or_404(Item, pk=pk)
     if request.method == 'POST':
@@ -158,8 +167,8 @@ def item_delete(request, pk):
 @login_required
 def transaction_create(request, pk):
     role = get_role(request.user)
-    if role != 'admin':
-        messages.error(request, 'Only admins can log transactions.')
+    if role not in ['admin', 'editor']:
+        messages.error(request, 'Only admins and editors can log transactions.')
         return redirect('item_detail', pk=pk)
     item = get_object_or_404(Item, pk=pk)
     if request.method == 'POST':
@@ -239,7 +248,10 @@ def user_management(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data['password'])
             user.save()
-            UserProfile.objects.create(user=user, role=form.cleaned_data['role'])
+            UserProfile.objects.update_or_create(
+                user=user,
+                defaults={'role': form.cleaned_data['role']}
+            )
             messages.success(request, f'User {user.username} created.')
             return redirect('user_management')
     else:
